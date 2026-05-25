@@ -4,18 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class AuditLog extends Model
+class Category extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'user_id', 
-        'action', 
-        'description', 
-        'ip_address'
+        'name',
     ];
-    public function user()
+
+    public function products(): HasMany
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(Product::class);
     }
 }

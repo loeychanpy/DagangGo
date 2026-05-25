@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('audit_logs', function (Blueprint $table) {
+        Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('action')->index(); // Contoh: 'LOGIN', 'TAMBAH_STOK', 'HAPUS_TRANSAKSI'
-            $table->text('description')->nullable();
-            $table->string('ip_address')->nullable();
+            $table->string('name')->unique(); // Contoh: Kilogram
+            $table->string('short_name')->unique();     // Contoh: kg
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('audit_logs');
+        Schema::dropIfExists('units');
     }
 };
