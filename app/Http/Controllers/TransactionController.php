@@ -12,9 +12,140 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Models\Category;
 
 class TransactionController extends Controller
-{
+{   
+    #Fungsi untuk menampilkan halaman transaksi (POS)
+    public function index(Request $request)
+    {
+        $query = Product::with([
+            'category',
+            'unit'
+        ])
+        ->where('stock','>',0);
+
+        // Search produk
+        if($request->filled('search'))
+        {
+            $query->where(
+                'name',
+                'like',
+                '%'.$request->search.'%'
+            );
+        }
+
+        // Filter kategori
+        if($request->filled('category'))
+        {
+            $query->where(
+                'category_id',
+                $request->category
+            );
+        }
+
+        $products = $query->get();
+        $categories = Category::all();
+        $cart=session()->get(
+            'cart',
+            []
+        );
+        
+        // Jika request dari fetch()
+        if($request->ajax())
+        {
+            return response()->json([
+                'products'=>$products
+            ]);
+        }
+        return view(
+            'transaction.index',
+            compact(
+                'products',
+                'categories',
+                'cart'
+            )
+        );
+    }
+
+    #Fungsi untuk menambahkan produk ke keranjang (Session)
+    public function addToCart(Request $request)
+    {
+        $product = Product::findOrFail(
+            $request->product_id
+        );
+
+        $cart = session()->get(
+            'cart',
+            []
+        );
+
+        if(isset($cart[$product->id])){
+
+            $cart[$product->id]['qty']++;
+
+        }else{
+
+            $cart[$product->id]=[
+                'id'=>$product->id,
+                'name'=>$product->name,
+                'price'=>$product->selling_price,
+                'qty'=>1
+            ];
+        }
+
+        session()->put(
+            'cart',
+            $cart
+        );
+
+        return response()->json([
+            'success' => true,
+            'cart' => session('cart')
+        ]);
+    }
+
+    #FUngsi untuk mengurangi jumlah produk di keranjang atau menghapusnya jika qty <=0
+    public function removeFromCart(Request $request)
+    {
+        $productId = $request->product_id;
+
+        $cart = session()->get(
+            'cart',
+            []
+        );
+
+        // Pastikan item ada
+        if(isset($cart[$productId]))
+        {
+            // Kurangi qty
+            $cart[$productId]['qty']--;
+
+            // Jika qty <=0 hapus item
+            if(
+                $cart[$productId]['qty']
+                <=0
+            )
+            {
+                unset(
+                    $cart[$productId]
+                );
+            }
+
+            // Simpan ulang session
+            session()->put(
+                'cart',
+                $cart
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'cart' => session('cart')
+        ]);
+    }
+
+    #Fungsi untuk menyimpan transaksi baru ke database
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -122,5 +253,103 @@ class TransactionController extends Controller
 
             return response()->json(['message' => 'Transaksi berhasil!', 'invoice' => $invoiceNumber]);
         });
+    }
+
+    public function checkout(Request $request)
+    {
+        $cart = session()->get('cart',[]);
+
+        if(count($cart)===0)
+        {
+            return response()->json(['message'=>'Cart kosong'],400);
+        }
+
+        $subtotal = 0;
+        foreach($cart as $item)
+        {
+            $subtotal += $item['price'] * $item['qty'];
+        }
+        $discount = $request->discount ?? 0;
+        $finalTotal = $subtotal-$discount;
+        $payAmount = $request->pay_amount ?? 0;
+        $changeAmount =$request->payment_method==='cash'?max($payAmount-$finalTotal,0):0;
+        // Generate invoice
+        $invoiceNumber ='INV-'.time();
+        // Status pembayaran
+        $status = $request->payment_method === 'tempo'?'unpaid':'paid';
+        // Remaining bill
+        $remainingBill = $request->payment_method === 'tempo'?$finalTotal:0;
+
+        if(
+            $request->payment_method === 'cash'
+            &&
+            $payAmount < $finalTotal
+        )
+        {
+            return response()->json([
+                'message'=>'Uang pembayaran kurang'
+            ],400);
+        }
+        
+        DB::beginTransaction();
+
+        try{
+            // Save transaction
+            $transaction = Transaction::create([
+                'invoice_number'=>$invoiceNumber,
+                'user_id'=>auth()->id(),
+                'subtotal'=>$subtotal,
+                'discount'=>$discount,
+                'tax'=>0,
+                'total_price'=>$finalTotal,
+                'pay_amount'=>$payAmount,
+                'change_amount'=>$changeAmount,
+                'payment_method'=>$request->payment_method,
+                'status'=>$status,
+                'remaining_bill'=>$remainingBill,
+                'due_date'=>$request->due_date
+            ]);
+
+            // Save details
+            foreach($cart as $item)
+            {
+                TransactionDetail::create([
+                    'transaction_id'=>$transaction->id,
+                    'product_id'=>$item['id'],
+                    'quantity'=>$item['qty'],
+                    'price_at_sale'=>$item['price'],
+                    'subtotal'=>$item['price'] * $item['qty']
+                ]);
+                // Reduce stock
+                Product::find($item['id'])->decrement('stock', $item['qty']);
+            }
+            // Save payment
+            TransactionPayment::create([
+                'transaction_id'=>$transaction->id,
+                'user_id'=>auth()->id(),
+                'amount'=>$finalTotal,
+                'payment_method'=>$request->payment_method
+            ]);
+            DB::commit();
+            session()->forget('cart');
+            return response()->json([
+                'message'=>
+                'Checkout berhasil'
+
+            ]);
+
+        }
+        catch(\Exception $e){
+
+            DB::rollBack();
+
+            return response()->json([
+
+                'message'=>$e->getMessage()
+
+            ],500);
+
+        }
+
     }
 }

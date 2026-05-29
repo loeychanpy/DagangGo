@@ -22,6 +22,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
+    #Transaction routes
+    Route::get('/transaction',[TransactionController::class,'index'])->middleware('auth')->name('transaction.index');
+    Route::post('/transaction',[TransactionController::class,'store']);
+    #Route untuk menambahkan produk ke keranjang
+    Route::post('/transaction/cart/add',[TransactionController::class,'addToCart'])->name('cart.add');
+    #Route untuk menghapus produk dari keranjang
+    Route::post('/transaction/cart/remove',[TransactionController::class,'removeFromCart']) ->name('cart.remove');
+    #Route untuk checkout transaksi
+    Route::post('/transaction/checkout',[TransactionController::class,'checkout'])->middleware('auth');
     /* #Contoh route yang hanya bisa diakses oleh Owner (Misal: Halaman khusus Owner)
      Route::get('/owner-dashboard', function () {
         return view('owner.index');
