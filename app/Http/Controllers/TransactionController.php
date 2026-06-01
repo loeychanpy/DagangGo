@@ -81,11 +81,23 @@ class TransactionController extends Controller
         );
 
         if(isset($cart[$product->id])){
-
+            if($cart[$product->id]['qty'] >= $product->stock)
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok tidak mencukupi'
+                ],400);
+            }
             $cart[$product->id]['qty']++;
 
         }else{
-
+            if($product->stock < 1)
+            {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Stok habis'
+                ],400);
+            }
             $cart[$product->id]=[
                 'id'=>$product->id,
                 'name'=>$product->name,
@@ -324,12 +336,15 @@ class TransactionController extends Controller
                 Product::find($item['id'])->decrement('stock', $item['qty']);
             }
             // Save payment
-            TransactionPayment::create([
-                'transaction_id'=>$transaction->id,
-                'user_id'=>auth()->id(),
-                'amount'=>$finalTotal,
-                'payment_method'=>$request->payment_method
-            ]);
+            if($request->payment_method !== 'tempo')
+            {
+                TransactionPayment::create([
+                    'transaction_id'=>$transaction->id,
+                    'user_id'=>auth()->id(),
+                    'amount'=>$finalTotal,
+                    'payment_method'=>$request->payment_method
+                ]);
+            }
             DB::commit();
             session()->forget('cart');
             return response()->json([

@@ -85,8 +85,7 @@ function renderCart(cart)
                     <p class="font-semibold">
                         ${item.name}
                     </p>
-                    <div
-                    class="flex gap-2 mt-2">
+                    <div class="flex items-center gap-2 mt-2">
                         <button onclick="removeFromCart(${item.id})"
                         class="w-8 h-8 bg-red-100 rounded">
                         -
@@ -156,14 +155,14 @@ function renderCart(cart)
     </div>
     <div id="cash-payment-container" class="mt-4">
         <label class="block text-sm mb-2 font-semibold">
-            Pay Amount
+            Jumlah Bayar
         </label>
         <input id="pay-amount" type="text" autocomplete="off" min="0" value="${currentPayAmount}" class="w-full rounded-lg border-gray-300" placeholder="Jumlah bayar">
     </div>
     <div id="change-amount-container" class="mt-4">
         <div class="flex justify-between font-bold text-lg">
             <span>
-                Change
+                Kembalian
             </span>
             <span id="change-text">
                 Rp 0
@@ -171,7 +170,7 @@ function renderCart(cart)
         </div>
     </div>
     <button onclick="checkout()" class="w-full mt-5 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
-        Checkout
+        Bayar
     </button>
     `;
     // Restore visibility payment section

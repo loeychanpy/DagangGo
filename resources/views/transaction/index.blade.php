@@ -94,21 +94,21 @@
                                     </p>
                                     <div class="flex items-center mt-2 gap-2">
                                     <!-- Tombol minus -->
-                                        <button
-                                        onclick="removeFromCart({{$item['id']}})"
+                                        <button onclick="removeFromCart({{$item['id']}})"
                                         class="w-8 h-8 bg-red-100 rounded"
                                         >
                                         -
                                         </button>
-                                    <span>
-                                    {{$item['qty']}}
-                                    </span>
+                                        <span>
+                                        {{$item['qty']}}
+                                        </span>
                                         <button
                                         onclick="addToCart({{$item['id']}})"
                                         class="w-8 h-8 bg-green-100 rounded"
                                         >
                                         +
                                         </button>
+                                    </div>
                                 </div>
                                 <div>
                                     Rp {{ number_format($subtotal,0,',','.') }}
@@ -164,14 +164,14 @@
                     </div>
                     <div id="cash-payment-container" class="mt-4">
                         <label class="block text-sm mb-2 font-semibold">
-                            Pay Amount
+                            Jumlah Bayar
                         </label>
                         <input id="pay-amount" type="text" autocomplete="off" min="0" class="w-full rounded-lg border-gray-300" placeholder="Jumlah bayar">
                     </div>
                     <div id="change-amount-container" class="mt-4">
                         <div class="flex justify-between font-bold text-lg">
                             <span>
-                                Change
+                                Kembalian
                             </span>
                             <span id="change-text">
                                 Rp 0
@@ -179,7 +179,7 @@
                         </div>
                     </div>
                     <button type="button" onclick="checkout()" class="w-full mt-5 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
-                        Checkout
+                        Bayar
                     </button>
                 @else
                     <div class="text-center py-10">
