@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
@@ -31,6 +32,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/transaction/cart/remove',[TransactionController::class,'removeFromCart']) ->name('cart.remove');
     #Route untuk checkout transaksi
     Route::post('/transaction/checkout',[TransactionController::class,'checkout'])->middleware('auth');
+
+    #Inventory routes
+    Route::get('/inventory',[ProductController::class,'index'])->middleware('auth')->name('inventory.index');
+    Route::get('/inventory/create',[ProductController::class,'create'])->name('inventory.create');
+    Route::post('/inventory/store',[ProductController::class,'store'])->name('inventory.store');
+    Route::get('/inventory/{product}/edit',[ProductController::class,'edit'])->name('inventory.edit');
+    Route::put('/inventory/{product}',[ProductController::class,'update'])->name('inventory.update');
+    Route::delete('/inventory/{product}',[ProductController::class,'destroy'])->name('inventory.destroy');
     /* #Contoh route yang hanya bisa diakses oleh Owner (Misal: Halaman khusus Owner)
      Route::get('/owner-dashboard', function () {
         return view('owner.index');

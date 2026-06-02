@@ -247,11 +247,23 @@ document.addEventListener('input',function(e){
     }
 });
 
-document.getElementById('search-product').addEventListener('keyup',function(){
-    searchProduct(
-        this.value
+const searchProductInput =
+document.getElementById(
+    'search-product'
+);
+
+if(searchProductInput)
+{
+    searchProductInput.addEventListener(
+        'keyup',
+        function()
+        {
+            searchProduct(
+                this.value
+            );
+        }
     );
-});
+}
 
 //Untuk menghitung ulang total ketika diskon diubah
 function calculateTotal()
@@ -340,7 +352,12 @@ function renderProducts(products)
         </div>
         `;
     });
-    container.innerHTML = html;
+    if(!container){
+        return
+    }
+    else{
+        container.innerHTML = html;
+    }
 }
 
 //Untuk memfilter produk berdasarkan kategori
