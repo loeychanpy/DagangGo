@@ -1,17 +1,44 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
+    #Dashboard untuk semua yang sudah login (Owner & Staff)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    #Profile routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    #Transaction routes
+    Route::get('/transaction',[TransactionController::class,'index'])->middleware('auth')->name('transaction.index');
+    Route::post('/transaction',[TransactionController::class,'store']);
+    #Route untuk menambahkan produk ke keranjang
+    Route::post('/transaction/cart/add',[TransactionController::class,'addToCart'])->name('cart.add');
+    #Route untuk menghapus produk dari keranjang
+    Route::post('/transaction/cart/remove',[TransactionController::class,'removeFromCart']) ->name('cart.remove');
+    #Route untuk checkout transaksi
+    Route::post('/transaction/checkout',[TransactionController::class,'checkout'])->middleware('auth');
+    /* #Contoh route yang hanya bisa diakses oleh Owner (Misal: Halaman khusus Owner)
+     Route::get('/owner-dashboard', function () {
+        return view('owner.index');
+    })->middleware(['auth', 'role:owner']); */
+/* 
+    Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store'); */
+
+     // Halaman yang hanya bisa dibuka oleh Owner (Misal: Laporan Keuangan)
     #Dashboard untuk semua yang sudah login (Owner & Staff)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
