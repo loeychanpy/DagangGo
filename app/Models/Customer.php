@@ -15,6 +15,7 @@ class Customer extends Model
         'name',
         'phone',
         'address',
+        'credit_limit',
     ];
 
     public function transactions(): HasMany
