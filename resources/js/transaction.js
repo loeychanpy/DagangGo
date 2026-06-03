@@ -1,8 +1,10 @@
 let cartData={};
+const basePath = window.APP_BASE_PATH || '';
+
 //Untuk menambahkan produk ke keranjang
 window.addToCart = function(productId)
 {
-    fetch("/transaction/cart/add",
+    fetch(basePath + "/transaction/cart/add",
         {
             method:'POST',
             headers:{
@@ -26,7 +28,7 @@ window.addToCart = function(productId)
 window.removeFromCart = function(productId)
 {
     fetch(
-        "/transaction/cart/remove",
+        basePath + "/transaction/cart/remove",
         {
             method:'POST',
             headers:{
@@ -66,6 +68,11 @@ function renderCart(cart)
                 </p>
             </div>`;
         return;
+    }
+
+    const featureKasbon = window.FEATURE_KASBON === true || window.FEATURE_KASBON === 'true';
+    if (!featureKasbon && currentPaymentMethod === 'tempo') {
+        currentPaymentMethod = 'cash';
     }
 
     let total = Number(0);
@@ -142,9 +149,11 @@ function renderCart(cart)
             <option value="qris" ${currentPaymentMethod==='qris'?'selected':''}>
                 QRIS
             </option>
+            ${featureKasbon ? `
             <option value="tempo" ${currentPaymentMethod==='tempo'?'selected':''}>
                 Tempo
             </option>
+            ` : ''}
         </select>
     </div>
     <div id="tempo-date-container" class="mt-4 hidden">
@@ -247,11 +256,14 @@ document.addEventListener('input',function(e){
     }
 });
 
-document.getElementById('search-product').addEventListener('keyup',function(){
-    searchProduct(
-        this.value
-    );
-});
+const searchInput = document.getElementById('search-product');
+if (searchInput) {
+    searchInput.addEventListener('keyup',function(){
+        searchProduct(
+            this.value
+        );
+    });
+}
 
 //Untuk menghitung ulang total ketika diskon diubah
 function calculateTotal()
@@ -283,7 +295,7 @@ window.searchProduct=
 function(keyword)
 {
     fetch(
-        `/transaction?search=${keyword}&category=${selectedCategory}`,
+        basePath + `/transaction?search=${keyword}&category=${selectedCategory}`,
         {            
             headers:{
                 'X-Requested-With':
@@ -424,7 +436,7 @@ function()
     const dueDate = document.querySelector('#due-date')?.value;
     const payAmount = Number(document.querySelector('#pay-amount').value.replace(/\./g,'').replace(/,/g,'')) || 0;
 
-    fetch('/transaction/checkout',
+    fetch(basePath + '/transaction/checkout',
         {
             method:'POST',
             headers:{
@@ -477,5 +489,5 @@ window.closePopup =
 function()
 {
     window.location.href =
-    '/transaction';
+    basePath + '/transaction';
 }

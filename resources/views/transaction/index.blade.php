@@ -151,17 +151,21 @@
                             <option value="qris">
                                 QRIS
                             </option>
-                            <option value="tempo">
-                                Tempo
-                            </option>
+                            @if(config('features.kasbon'))
+                                <option value="tempo">
+                                    Tempo
+                                </option>
+                            @endif
                         </select>
                     </div>
-                    <div id="tempo-date-container" class="mt-4 hidden">
-                        <label class="block text-sm mb-2 font-semibold">
-                            Tenggat Tempo
-                        </label>
-                        <input id="due-date" type="date" class="w-full rounded-lg border-gray-300">
-                    </div>
+                    @if(config('features.kasbon'))
+                        <div id="tempo-date-container" class="mt-4 hidden">
+                            <label class="block text-sm mb-2 font-semibold">
+                                Tenggat Tempo
+                            </label>
+                            <input id="due-date" type="date" class="w-full rounded-lg border-gray-300">
+                        </div>
+                    @endif
                     <div id="cash-payment-container" class="mt-4">
                         <label class="block text-sm mb-2 font-semibold">
                             Jumlah Bayar
@@ -192,6 +196,11 @@
         </div>
     </div>
 </div>
+<script>
+    window.FEATURE_KASBON = {{ config('features.kasbon') ? 'true' : 'false' }};
+    window.FEATURE_DELIVERY = {{ config('features.delivery') ? 'true' : 'false' }};
+    window.APP_BASE_PATH = '{{ url('') }}';
+</script>
 </x-app-layout>
 <div id="success-popup" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
     <div class=" bg-white rounded-2xl p-8 shadow-2xl text-center w-96">

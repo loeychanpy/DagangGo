@@ -26,20 +26,22 @@
                     </div>
                 </div>
 
-                <!-- Kasbon Card -->
-                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-8 border-l-4 border-red-500">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-semibold text-red-700 uppercase tracking-wider">Total Kasbon</p>
-                            <p class="text-3xl font-bold text-red-900 mt-3">Rp {{ number_format($totalReceivables, 0, ',', '.') }}</p>
-                        </div>
-                        <div class="bg-red-500 bg-opacity-20 p-4 rounded-full">
-                            <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                            </svg>
+                @if(config('features.kasbon'))
+                    <!-- Kasbon Card -->
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-8 border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-red-700 uppercase tracking-wider">Total Kasbon</p>
+                                <p class="text-3xl font-bold text-red-900 mt-3">Rp {{ number_format($totalReceivables, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="bg-red-500 bg-opacity-20 p-4 rounded-full">
+                                <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @endif
 
                 <!-- Stok Kritis Card -->
                 <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-8 border-l-4 border-yellow-500">

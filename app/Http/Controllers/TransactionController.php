@@ -282,17 +282,36 @@ class TransactionController extends Controller
             $subtotal += $item['price'] * $item['qty'];
         }
         $discount = $request->discount ?? 0;
-        $finalTotal = $subtotal-$discount;
+        $finalTotal = $subtotal - $discount;
         $payAmount = $request->pay_amount ?? 0;
-        $changeAmount =$request->payment_method==='cash'?max($payAmount-$finalTotal,0):0;
-        // Generate invoice
-        $invoiceNumber ='INV-'.time();
-        // Status pembayaran
-        $status = $request->payment_method === 'tempo'?'unpaid':'paid';
-        // Remaining bill
-        $remainingBill = $request->payment_method === 'tempo'?$finalTotal:0;
 
-        if(
+        $featureKasbon = config('features.kasbon');
+        $allowedMethods = ['cash', 'transfer', 'qris'];
+        if ($featureKasbon) {
+            $allowedMethods[] = 'tempo';
+        }
+
+        if (!in_array($request->payment_method, $allowedMethods, true)) {
+            return response()->json([
+                'message' => 'Metode pembayaran tidak valid'
+            ], 400);
+        }
+
+        if ($request->payment_method === 'tempo' && !$featureKasbon) {
+            return response()->json([
+                'message' => 'Metode Tempo tidak tersedia'
+            ], 400);
+        }
+
+        $changeAmount = $request->payment_method === 'cash' ? max($payAmount - $finalTotal, 0) : 0;
+        // Generate invoice
+        $invoiceNumber = 'INV-' . time();
+        // Status pembayaran
+        $status = $request->payment_method === 'tempo' ? 'unpaid' : 'paid';
+        // Remaining bill
+        $remainingBill = $request->payment_method === 'tempo' ? $finalTotal : 0;
+
+        if (
             $request->payment_method === 'cash'
             &&
             $payAmount < $finalTotal
@@ -319,7 +338,7 @@ class TransactionController extends Controller
                 'payment_method'=>$request->payment_method,
                 'status'=>$status,
                 'remaining_bill'=>$remainingBill,
-                'due_date'=>$request->due_date
+                'due_date'=>$request->payment_method === 'tempo' ? $request->due_date : null
             ]);
 
             // Save details

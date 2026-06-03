@@ -55,6 +55,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sisa Tagihan</th>
                                 </tr>
                             </thead>
@@ -82,17 +83,17 @@
                                             {{ strtoupper($transaction->status) }}
                                         </span>
                                     </td>
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <a href="{{ route('transactions.surat-jalan', $transaction->id) }}" target="_blank" 
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        @if(config('features.delivery'))
+                                            <a href="{{ route('transactions.surat-jalan', $transaction->id) }}" target="_blank" 
                                                 class="inline-flex items-center px-2.5 py-1.5 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 transition ease-in-out duration-150" 
                                                 title="Cetak Surat Jalan">
-                                                    🚚 Surat Jalan
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                                🚚 Surat Jalan
+                                            </a>
+                                        @else
+                                            <span class="text-xs text-gray-500">Dinonaktifkan</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold {{ $transaction->remaining_bill > 0 ? 'text-red-600' : 'text-gray-400' }}">
                                         Rp {{ number_format($transaction->remaining_bill, 0, ',', '.') }}
                                     </td>
