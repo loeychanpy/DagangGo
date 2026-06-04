@@ -28,7 +28,7 @@
             <p class="text-sm">Tanggal: {{ $transaction->created_at->format('d/m/Y H:i') }}</p>
         </div>
         <div class="text-right">
-            <h2 class="text-xl font-bold">TB. DREAMS POS</h2>
+            <h2 class="text-xl font-bold">DagangGo</h2>
             <p class="text-sm">Jl. Raya Ukrida No. 1, Jakarta</p>
             <p class="text-sm">Telp: 0812-3456-7890</p>
         </div>

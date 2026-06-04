@@ -7,3 +7,6 @@ window.Alpine = Alpine;
 Alpine.start();
 
 import './transaction';
+import './inventory';
+import './dashboard';
+import './laporan';
