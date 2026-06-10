@@ -98,7 +98,7 @@ Edit `.env` with your database credentials and feature flags:
 
 ```env
 APP_NAME=DagangGo
-APP_URL=http://localhost/DagangGo/public
+APP_URL=http://localhost/MaterialPOS/public
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
