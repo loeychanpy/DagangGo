@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold text-on-surface">Products</h2>
+            <h2 class="text-xl font-bold text-on-surface">Daftar Produk</h2>
             <a href="{{ route('inventory.create') }}"
                 class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                + Add Product
+                + Tambah Produk
             </a>
         </div>
     </x-slot>
@@ -21,11 +21,11 @@
             <div class="p-4 border-b border-outline-variant">
                 <form id="searchForm" method="GET" action="{{ route('inventory.index') }}" class="flex gap-3 flex-wrap">
                     <input id="search" name="search" type="text" value="{{ request('search') }}"
-                        placeholder="Search product..."
+                        placeholder="Cari produk..."
                         class="rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-sm w-72">
                     <select id="categoryFilter" name="category"
                         class="rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-sm">
-                        <option value="">All Categories</option>
+                        <option value="">Semua Kategori</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}

@@ -30,7 +30,7 @@ class DummyPOSSeeder extends Seeder
 
         // 2. BUAT PRODUK CONTOH
         $product1 = Product::firstOrCreate([
-            'sku' => 'SMN-001',
+            'sku' => 'PRD0001',
         ], [
             'category_id' => $semen->id,
             'unit_id' => $sak->id,
@@ -42,7 +42,7 @@ class DummyPOSSeeder extends Seeder
         ]);
 
         $product2 = Product::firstOrCreate([
-            'sku' => 'CAT-001',
+            'sku' => 'PRD0002',
         ], [
             'category_id' => $cat->id,
             'unit_id' => $kg->id,

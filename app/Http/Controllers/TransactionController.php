@@ -2,21 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AuditLog;
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Product;
-use App\Models\StockMovement;
-use App\Models\Transaction;
-use App\Models\TransactionDetail;
-use App\Models\TransactionPayment;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Services\TransactionService;
 use Illuminate\Http\Request;
-use App\Models\Category;
 
 class TransactionController extends Controller
 {
+    public function __construct(private TransactionService $transactionService) {}
+
     public function index(Request $request)
     {
         $query = Product::with(['category', 'unit'])->where('stock', '>', 0);
@@ -92,9 +87,8 @@ class TransactionController extends Controller
             return response()->json(['message' => 'Cart kosong'], 400);
         }
 
-        $featureKasbon  = config('features.kasbon');
         $allowedMethods = ['cash', 'transfer', 'qris'];
-        if ($featureKasbon) {
+        if (config('features.kasbon')) {
             $allowedMethods[] = 'tempo';
         }
 
@@ -102,12 +96,7 @@ class TransactionController extends Controller
             return response()->json(['message' => 'Metode pembayaran tidak valid'], 400);
         }
 
-        // Hitung subtotal dari session cart
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['qty'];
-        }
-
+        $subtotal   = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart));
         $discount   = (float) ($request->discount ?? 0);
         $finalTotal = max($subtotal - $discount, 0);
         $payAmount  = (float) ($request->pay_amount ?? 0);
@@ -116,11 +105,6 @@ class TransactionController extends Controller
             return response()->json(['message' => 'Uang pembayaran kurang'], 400);
         }
 
-        $changeAmount  = $request->payment_method === 'cash' ? max($payAmount - $finalTotal, 0) : 0;
-        $status        = $request->payment_method === 'tempo' ? 'unpaid' : 'paid';
-        $remainingBill = $request->payment_method === 'tempo' ? $finalTotal : 0;
-
-        // Validasi credit limit untuk tempo
         if ($request->payment_method === 'tempo' && $request->filled('customer_id')) {
             $customer = Customer::find($request->customer_id);
             if ($customer && $customer->credit_limit > 0) {
@@ -136,92 +120,8 @@ class TransactionController extends Controller
             }
         }
 
-        DB::beginTransaction();
-
         try {
-            // Validasi stok sebelum commit
-            foreach ($cart as $item) {
-                $product = Product::findOrFail($item['id']);
-                if ($product->stock < $item['qty']) {
-                    throw new \Exception("Stok tidak mencukupi untuk {$product->name}. Sisa: {$product->stock}");
-                }
-            }
-
-            // Invoice number sequential per hari
-            $today         = Carbon::now()->format('Ymd');
-            $countToday    = Transaction::whereDate('created_at', Carbon::today())->count();
-            $invoiceNumber = 'INV-' . $today . '-' . str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
-
-            // Simpan header transaksi
-            $transaction = Transaction::create([
-                'invoice_number' => $invoiceNumber,
-                'customer_id'    => $request->filled('customer_id') ? $request->customer_id : null,
-                'user_id'        => Auth::id(),
-                'subtotal'       => $subtotal,
-                'discount'       => $discount,
-                'tax'            => 0,
-                'total_price'    => $finalTotal,
-                'pay_amount'     => $payAmount,
-                'change_amount'  => $changeAmount,
-                'payment_method' => $request->payment_method,
-                'status'         => $status,
-                'remaining_bill' => $remainingBill,
-                'due_date'       => $request->payment_method === 'tempo' ? $request->due_date : null,
-            ]);
-
-            // Simpan detail, kurangi stok, catat StockMovement
-            foreach ($cart as $item) {
-                $product      = Product::lockForUpdate()->findOrFail($item['id']);
-                $lineSubtotal = $item['price'] * $item['qty'];
-
-                TransactionDetail::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id'     => $product->id,
-                    'quantity'       => $item['qty'],
-                    'price_at_sale'  => $item['price'],
-                    'subtotal'       => $lineSubtotal,
-                ]);
-
-                $product->decrement('stock', $item['qty']);
-
-                StockMovement::create([
-                    'product_id'     => $product->id,
-                    'user_id'        => Auth::id(),
-                    'type'           => 'out',
-                    'quantity'       => $item['qty'],
-                    'reference_type' => 'Transaction',
-                    'reference_id'   => $transaction->id,
-                    'description'    => "Penjualan nota {$invoiceNumber}",
-                ]);
-            }
-
-            // Simpan record pembayaran awal (kecuali tempo)
-            if ($request->payment_method !== 'tempo') {
-                $proofPhotoPath = null;
-                if ($request->hasFile('proof_photo')) {
-                    $proofPhotoPath = $request->file('proof_photo')->store('payment-proofs', 'public');
-                }
-
-                TransactionPayment::create([
-                    'transaction_id'   => $transaction->id,
-                    'user_id'          => Auth::id(),
-                    'amount'           => $finalTotal,
-                    'payment_method'   => $request->payment_method,
-                    'reference_number' => $request->input('reference_number'),
-                    'notes'            => $proofPhotoPath,
-                ]);
-            }
-
-            // Audit log
-            AuditLog::create([
-                'user_id'     => Auth::id(),
-                'action'      => 'TRANSAKSI_BARU',
-                'description' => "Berhasil menyimpan transaksi {$invoiceNumber} senilai Rp " .
-                    number_format($finalTotal, 0, ',', '.'),
-                'ip_address'  => $request->ip(),
-            ]);
-
-            DB::commit();
+            $transaction = $this->transactionService->checkout($request, $cart);
             session()->forget('cart');
 
             return response()->json([
@@ -229,7 +129,6 @@ class TransactionController extends Controller
                 'transaction_id' => $transaction->id,
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }

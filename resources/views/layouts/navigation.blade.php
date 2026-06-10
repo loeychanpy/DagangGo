@@ -18,12 +18,9 @@
                     <x-nav-link :href="route('transaction.index')" :active="request()->routeIs('transaction.*')">
                         {{ __('Transaksi') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('laporan.index')" :active="request()->routeIs('laporan.*')">
-                        {{ __('Laporan') }}
-                    </x-nav-link>
                     <x-nav-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">
                         <span class="relative inline-flex items-center">
-                            {{ __('Inventory') }}
+                            {{ __('Inventaris') }}
                             @if($lowStockCount > 0)
                             <span class="ml-1.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
                                 {{ $lowStockCount }}
@@ -33,7 +30,10 @@
                     </x-nav-link>
                     @if(Auth::user()->role === 'owner')
                     <x-nav-link :href="route('audit-log.index')" :active="request()->routeIs('audit-log.*')">
-                        {{ __('Audit Log') }}
+                        {{ __('Log Aktivitas') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('laporan.index')" :active="request()->routeIs('laporan.*')">
+                        {{ __('Laporan') }}
                     </x-nav-link>
                     @endif
                 </div>
@@ -56,19 +56,18 @@
                     <x-slot name="content">
                     @if(Auth::user()->role === 'owner')
                         <x-dropdown-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                            {{ __('Manajemen User') }}
+                            {{ __('Manajemen Pengguna') }}
                         </x-dropdown-link>
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('Profil') }}
                         </x-dropdown-link>
                     @endif
-                        <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('Keluar') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -91,7 +90,7 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+                {{ __('Dasbor') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('transaction.index')" :active="request()->routeIs('transaction.*')">
                 {{ __('Transaksi') }}
@@ -100,7 +99,7 @@
                 {{ __('Laporan') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">
-                {{ __('Inventory') }}
+                {{ __('Inventaris') }}
             </x-responsive-nav-link>
         </div>
 
@@ -114,7 +113,7 @@
             <div class="mt-3 space-y-1">
                 @if(Auth::user()->role === 'owner')
                 <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
+                    {{ __('Profil') }}
                 </x-responsive-nav-link>
                 @endif
 
@@ -123,7 +122,7 @@
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        {{ __('Keluar') }}
                     </x-responsive-nav-link>
                 </form>
             </div>

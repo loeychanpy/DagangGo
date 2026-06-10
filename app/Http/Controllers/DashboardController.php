@@ -83,6 +83,12 @@ class DashboardController extends Controller
 
     private function buildChartData(Carbon $start, Carbon $end): array
     {
+        // Single GROUP BY query instead of one query per day
+        $results = Transaction::whereBetween('created_at', [$start, $end])
+            ->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('total', 'date');
+
         $labels = [];
         $data   = [];
         $days   = (int) $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay());
@@ -90,7 +96,7 @@ class DashboardController extends Controller
         for ($i = 0; $i <= $days; $i++) {
             $date     = $start->copy()->startOfDay()->addDays($i);
             $labels[] = $date->format('d/m');
-            $data[]   = (float) Transaction::whereDate('created_at', $date)->sum('total_price');
+            $data[]   = (float) ($results[$date->format('Y-m-d')] ?? 0);
         }
 
         return [$labels, $data];

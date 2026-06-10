@@ -12,84 +12,49 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class LaporanController extends Controller
 {
-    public function index(Request $request)
+    private function resolveDateRange(Request $request): array
     {
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
+        $endDate   = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
+        return [$startDate, $endDate];
+    }
 
-        $transactions = Transaction::with(['user', 'customer', 'delivery'])
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+    public function index(Request $request)
+    {
+        [$startDate, $endDate] = $this->resolveDateRange($request);
+
+        $range = [$startDate . ' 00:00:00', $endDate . ' 23:59:59'];
+
+        // Aggregate totals computed separately so pagination doesn't affect them
+        $totalSales    = Transaction::whereBetween('created_at', $range)->sum('total_price');
+        $totalReceived = Transaction::whereBetween('created_at', $range)->sum('pay_amount');
+        $totalDebt     = Transaction::whereBetween('created_at', $range)->sum('remaining_bill');
+
+        $transactions = Transaction::with(['user', 'customer', 'delivery', 'payments'])
+            ->whereBetween('created_at', $range)
             ->orderBy('created_at', 'desc')
-            ->get();
-
-        $totalSales = $transactions->sum('total_price');
-        $totalReceived = $transactions->sum('pay_amount');
-        $totalDebt = $transactions->sum('remaining_bill');
+            ->paginate(25)
+            ->withQueryString();
 
         return view('laporan.index', compact('transactions', 'totalSales', 'totalReceived', 'totalDebt', 'startDate', 'endDate'));
     }
 
     public function exportPdf(Request $request)
     {
-        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate] = $this->resolveDateRange($request);
 
-        $transactions = Transaction::with(['user', 'customer'])
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $range = [$startDate . ' 00:00:00', $endDate . ' 23:59:59'];
 
-        $totalSales = $transactions->sum('total_price');
+        $transactions  = Transaction::with(['user', 'customer'])->whereBetween('created_at', $range)->orderBy('created_at', 'desc')->get();
+        $totalSales    = $transactions->sum('total_price');
         $totalReceived = $transactions->sum('pay_amount');
-        $totalDebt = $transactions->sum('remaining_bill');
+        $totalDebt     = $transactions->sum('remaining_bill');
 
         $pdf = Pdf::loadView('laporan.pdf', compact(
             'transactions', 'totalSales', 'totalReceived', 'totalDebt', 'startDate', 'endDate'
         ))->setPaper('a4', 'landscape');
 
         return $pdf->download("laporan-penjualan-{$startDate}-{$endDate}.pdf");
-    }
-
-    public function exportCsv(Request $request)
-    {
-        $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
-
-        $transactions = Transaction::with(['user', 'customer'])
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        $filename = "laporan-penjualan-{$startDate}-{$endDate}.csv";
-        $headers = [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($transactions) {
-            $out = fopen('php://output', 'w');
-            fputs($out, "\xEF\xBB\xBF"); // BOM untuk Excel
-            fputcsv($out, ['Tanggal', 'Invoice', 'Pelanggan', 'Kasir', 'Metode', 'Subtotal', 'Diskon', 'Total', 'Dibayar', 'Kembalian', 'Sisa Tagihan', 'Status']);
-            foreach ($transactions as $t) {
-                fputcsv($out, [
-                    $t->created_at->format('d/m/Y H:i'),
-                    $t->invoice_number,
-                    $t->customer->name ?? 'Umum',
-                    $t->user->name ?? '-',
-                    strtoupper($t->payment_method),
-                    $t->subtotal,
-                    $t->discount,
-                    $t->total_price,
-                    $t->pay_amount,
-                    $t->change_amount,
-                    $t->remaining_bill,
-                    strtoupper($t->status),
-                ]);
-            }
-            fclose($out);
-        };
-
-        return response()->stream($callback, 200, $headers);
     }
 
     public function recordPayment(Request $request, Transaction $transaction)

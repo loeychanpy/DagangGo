@@ -39,6 +39,7 @@
                     <div id="product-container" class="grid grid-cols-3 gap-3">
                         @foreach($products as $product)
                         <div onclick="addToCart({{ $product->id }})"
+                            data-product-id="{{ $product->id }}"
                             class="bg-white rounded-xl border border-outline-variant hover:border-primary hover:shadow-md transition cursor-pointer p-4 select-none">
                             <h3 class="font-semibold text-sm text-on-surface leading-tight">{{ $product->name }}</h3>
                             <p class="text-xs text-on-surface-variant mt-0.5">{{ $product->category->name }}</p>
@@ -46,7 +47,8 @@
                                 <p class="font-mono font-bold text-primary text-sm">
                                     Rp {{ number_format($product->selling_price, 0, ',', '.') }}
                                 </p>
-                                <span class="font-mono text-xs text-on-surface-variant bg-surface-low rounded-full px-2 py-0.5">
+                                <span data-stock="{{ $product->stock }}" data-unit="{{ $product->unit->short_name }}"
+                                    class="font-mono text-xs text-on-surface-variant bg-surface-low rounded-full px-2 py-0.5">
                                     {{ $product->stock }} {{ $product->unit->short_name }}
                                 </span>
                             </div>
@@ -189,6 +191,7 @@
     window.APP_BASE_PATH   = '{{ url('') }}';
     window.INITIAL_CART    = {!! json_encode($cart) !!};
     window.ROUTE_CUSTOMERS_STORE = '{{ route('customers.store') }}';
+    window.ROUTE_CHECKOUT        = '{{ route('transaction.checkout') }}';
 </script>
 </x-app-layout>
 

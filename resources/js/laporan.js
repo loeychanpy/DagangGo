@@ -186,6 +186,41 @@ document.addEventListener('DOMContentLoaded', function () {
         modalInfo.addEventListener('click', e => { if (e.target === modalInfo) modalInfo.classList.add('hidden'); });
     }
 
+    // --- Modal Bukti Pembayaran ---
+    const modalBukti    = document.getElementById('modal-bukti');
+    const btnCloseBukti = document.getElementById('btn-close-bukti');
+    const buktiList     = document.getElementById('bukti-list');
+
+    if (modalBukti) {
+        document.querySelectorAll('.btn-lihat-bukti').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.getElementById('bukti-invoice').textContent = this.dataset.invoice;
+
+                let proofs = [];
+                try { proofs = JSON.parse(this.dataset.proofs); } catch (e) { proofs = []; }
+
+                buktiList.innerHTML = proofs.map(p => `
+                    <div class="border border-outline-variant rounded-lg overflow-hidden">
+                        <a href="${p.url}" target="_blank" class="block bg-surface-low">
+                            <img src="${p.url}" alt="Bukti ${p.method}" class="w-full max-h-72 object-contain mx-auto">
+                        </a>
+                        <div class="p-3 text-xs space-y-0.5 bg-surface-low border-t border-outline-variant">
+                            <p class="text-on-surface-variant">Metode: <span class="font-semibold text-on-surface">${p.method}</span></p>
+                            <p class="text-on-surface-variant">Nominal: <span class="font-mono font-semibold text-on-surface">Rp ${formatRp(p.amount)}</span></p>
+                            ${p.reference ? `<p class="text-on-surface-variant">No. Referensi: <span class="font-semibold text-on-surface">${p.reference}</span></p>` : ''}
+                            <p class="text-on-surface-variant">Tanggal: <span class="font-semibold text-on-surface">${p.date}</span></p>
+                        </div>
+                    </div>
+                `).join('');
+
+                modalBukti.classList.remove('hidden');
+            });
+        });
+
+        btnCloseBukti.addEventListener('click', () => modalBukti.classList.add('hidden'));
+        modalBukti.addEventListener('click', e => { if (e.target === modalBukti) modalBukti.classList.add('hidden'); });
+    }
+
     function formatRp(num) {
         return Number(num).toLocaleString('id-ID');
     }
