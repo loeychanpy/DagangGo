@@ -18,6 +18,11 @@ class TransactionDetail extends Model
         'subtotal',
     ];
 
+    protected $casts = [
+        'price_at_sale' => 'decimal:2',
+        'subtotal'      => 'decimal:2',
+    ];
+
     public function transaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class);

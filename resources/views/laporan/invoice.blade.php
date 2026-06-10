@@ -62,12 +62,6 @@
             <td>- Rp {{ number_format($transaction->discount, 0, ',', '.') }}</td>
         </tr>
         @endif
-        @if($transaction->tax > 0)
-        <tr>
-            <td>Pajak</td>
-            <td>Rp {{ number_format($transaction->tax, 0, ',', '.') }}</td>
-        </tr>
-        @endif
         <tr class="grand-total">
             <td>TOTAL</td>
             <td>Rp {{ number_format($transaction->total_price, 0, ',', '.') }}</td>

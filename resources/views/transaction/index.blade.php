@@ -39,6 +39,7 @@
                     <div id="product-container" class="grid grid-cols-3 gap-3">
                         @foreach($products as $product)
                         <div onclick="addToCart({{ $product->id }})"
+                            data-product-id="{{ $product->id }}"
                             class="bg-white rounded-xl border border-outline-variant hover:border-primary hover:shadow-md transition cursor-pointer p-4 select-none">
                             <h3 class="font-semibold text-sm text-on-surface leading-tight">{{ $product->name }}</h3>
                             <p class="text-xs text-on-surface-variant mt-0.5">{{ $product->category->name }}</p>
@@ -46,7 +47,8 @@
                                 <p class="font-mono font-bold text-primary text-sm">
                                     Rp {{ number_format($product->selling_price, 0, ',', '.') }}
                                 </p>
-                                <span class="font-mono text-xs text-on-surface-variant bg-surface-low rounded-full px-2 py-0.5">
+                                <span data-stock="{{ $product->stock }}" data-unit="{{ $product->unit->short_name }}"
+                                    class="font-mono text-xs text-on-surface-variant bg-surface-low rounded-full px-2 py-0.5">
                                     {{ $product->stock }} {{ $product->unit->short_name }}
                                 </span>
                             </div>
@@ -64,7 +66,7 @@
                 <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Pelanggan</label>
                 <div class="flex gap-2">
                     <select id="customer-select" class="flex-1 rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-sm">
-                        <option value="">-- Umum (Tanpa Pelanggan) --</option>
+                        <option value="">Umum</option>
                         @foreach($customers as $customer)
                             <option value="{{ $customer->id }}">{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>
                         @endforeach
@@ -189,6 +191,7 @@
     window.APP_BASE_PATH   = '{{ url('') }}';
     window.INITIAL_CART    = {!! json_encode($cart) !!};
     window.ROUTE_CUSTOMERS_STORE = '{{ route('customers.store') }}';
+    window.ROUTE_CHECKOUT        = '{{ route('transaction.checkout') }}';
 </script>
 </x-app-layout>
 
@@ -248,6 +251,20 @@
             <button onclick="closePopup()"
                 class="bg-primary text-white px-6 py-2.5 rounded-xl hover:bg-primary-dark font-semibold text-sm">
                 Transaksi Baru
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="error-popup" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 shadow-2xl text-center w-96 border border-outline-variant">
+        <div class="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center text-3xl text-red-600">✕</div>
+        <h2 class="text-xl font-bold text-on-surface mt-4">Gagal</h2>
+        <p id="error-popup-message" class="text-on-surface-variant mt-2 text-sm">Checkout gagal</p>
+        <div class="mt-6">
+            <button onclick="closeErrorPopup()"
+                class="bg-primary text-white px-6 py-2.5 rounded-xl hover:bg-primary-dark font-semibold text-sm w-full">
+                Tutup
             </button>
         </div>
     </div>

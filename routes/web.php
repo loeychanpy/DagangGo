@@ -31,34 +31,34 @@ Route::middleware('auth')->group(function () {
     // Customer routes (staff & owner)
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
-    // Transaction / POS routes (accessible to both owner and staff)
+    // Transaction / POS routes
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');
     Route::post('/transaction/cart/add', [TransactionController::class, 'addToCart'])->name('cart.add');
     Route::post('/transaction/cart/remove', [TransactionController::class, 'removeFromCart'])->name('cart.remove');
-    Route::post('/transaction/checkout', [TransactionController::class, 'checkout']);
-    Route::post('/laporan/transactions/{transaction}/pay', [LaporanController::class, 'recordPayment'])->name('laporan.pay');
+    Route::post('/transaction/checkout', [TransactionController::class, 'checkout'])->name('transaction.checkout');
+
+    // Invoice accessible to all authenticated users (staff may need to reprint)
     Route::get('/transactions/{transaction}/invoice', [LaporanController::class, 'exportInvoice'])->name('transactions.invoice');
 
-    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-    Route::get('/laporan/pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
-    Route::get('/laporan/csv', [LaporanController::class, 'exportCsv'])->name('laporan.csv');
+    Route::get('/inventory', [ProductController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/create', [ProductController::class, 'create'])->name('inventory.create');
+    Route::post('/inventory/store', [ProductController::class, 'store'])->name('inventory.store');
+    Route::get('/inventory/{product}/edit', [ProductController::class, 'edit'])->name('inventory.edit');
+    Route::put('/inventory/{product}', [ProductController::class, 'update'])->name('inventory.update');
+    Route::delete('/inventory/{product}', [ProductController::class, 'destroy'])->name('inventory.destroy');
+
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::post('/units', [UnitController::class, 'store'])->name('units.store');
-
-    Route::get('/inventory',[ProductController::class,'index'])->middleware('auth')->name('inventory.index');
-    Route::get('/inventory/create',[ProductController::class,'create'])->name('inventory.create');
-    Route::post('/inventory/store',[ProductController::class,'store'])->name('inventory.store');
-    Route::get('/inventory/{product}/edit',[ProductController::class,'edit'])->name('inventory.edit');
-    Route::put('/inventory/{product}',[ProductController::class,'update'])->name('inventory.update');
-    Route::delete('/inventory/{product}',[ProductController::class,'destroy'])->name('inventory.destroy');
 });
 
-// Routes khusus Owner (Laporan, User Management, dll)
+// Routes khusus Owner
 Route::middleware(['auth', 'role:owner'])->group(function () {
-
-
-
+    // Financial reports — owner only
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/pdf', [LaporanController::class, 'exportPdf'])->name('laporan.pdf');
+    Route::post('/laporan/transactions/{transaction}/pay', [LaporanController::class, 'recordPayment'])->name('laporan.pay');
 
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 
@@ -69,12 +69,9 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-        #Inventory routes
-
 });
 
 Route::middleware(['auth', 'role:staff'])->group(function () {
-    
 });
 
 

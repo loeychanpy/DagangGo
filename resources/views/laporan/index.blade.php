@@ -31,10 +31,6 @@
                        class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold text-xs uppercase tracking-widest hover:bg-red-700 transition text-center">
                         PDF
                     </a>
-                    <a href="{{ route('laporan.csv', ['start_date' => $startDate, 'end_date' => $endDate]) }}"
-                       class="px-4 py-2 bg-secondary text-white rounded-lg font-semibold text-xs uppercase tracking-widest hover:bg-secondary-dark transition text-center">
-                        Excel
-                    </a>
                 </form>
             </div>
 
@@ -131,11 +127,29 @@
                                                 <svg class="w-4 h-4 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                                 Unduh PDF
                                             </a>
+                                            @php
+                                                $proofs = $transaction->payments->whereNotNull('proof_photo');
+                                            @endphp
+                                            @if($proofs->isNotEmpty())
+                                            <button type="button"
+                                                class="btn-lihat-bukti w-full text-left px-4 py-2.5 text-sm text-on-surface hover:bg-surface-low flex items-center gap-2.5 transition"
+                                                data-invoice="{{ $transaction->invoice_number }}"
+                                                data-proofs="{{ json_encode($proofs->map(fn($p) => [
+                                                    'url'       => asset('storage/' . $p->proof_photo),
+                                                    'method'    => strtoupper($p->payment_method),
+                                                    'amount'    => $p->amount,
+                                                    'reference' => $p->reference_number,
+                                                    'date'      => $p->created_at->format('d/m/Y H:i'),
+                                                ])->values()) }}">
+                                                <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                Lihat Bukti
+                                            </button>
+                                            @endif
                                             @if(config('features.delivery'))
                                                 @if($transaction->delivery)
                                                 <a href="{{ route('transactions.surat-jalan', $transaction->id) }}" target="_blank"
                                                     class="w-full text-left px-4 py-2.5 text-sm text-on-surface hover:bg-surface-low flex items-center gap-2.5 transition">
-                                                    <svg class="w-4 h-4 text-on-surface-variant flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2L19 8M10 12v4M14 12v4"/></svg>
+                                                    <svg class="w-4 h-4 text-on-surface-variant flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 1m8-11h2l2 3v4h-4m-6 0H3"/></svg>
                                                     Cetak Surat Jalan
                                                 </a>
                                                 @else
@@ -177,6 +191,11 @@
                         </tbody>
                     </table>
                 </div>
+                @if($transactions->hasPages())
+                <div class="px-6 py-4 border-t border-outline-variant">
+                    {{ $transactions->links() }}
+                </div>
+                @endif
             </div>
 
         </div>
@@ -295,7 +314,17 @@
                     <p class="text-on-surface-variant">Nama: <span id="ci-name" class="font-semibold text-on-surface"></span></p>
                     <p class="text-on-surface-variant">Telepon: <span id="ci-phone" class="font-semibold text-on-surface"></span></p>
                     <p class="text-on-surface-variant">Alamat: <span id="ci-address" class="font-semibold text-on-surface"></span></p>
-                    <p class="text-on-surface-variant">Limit Kredit: <span id="ci-credit" class="font-semibold text-on-surface font-mono"></span></p>
+                    <div class="flex items-center gap-2 pt-1">
+                        <label for="ci-credit-input" class="text-on-surface-variant whitespace-nowrap">Limit Kredit:</label>
+                        <input id="ci-credit-input" type="number" min="0" step="1000"
+                            class="flex-1 min-w-0 rounded-lg border-outline-variant focus:border-primary focus:ring-primary font-mono text-sm py-1"
+                            placeholder="0 = tanpa limit">
+                        <button type="button" id="btn-save-credit"
+                            class="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-dark transition disabled:opacity-50">
+                            Simpan
+                        </button>
+                    </div>
+                    <p id="ci-credit-status" class="text-xs hidden"></p>
                 </div>
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="bg-primary/10 rounded-lg p-3">
@@ -314,6 +343,23 @@
             </div>
             <div class="flex justify-end mt-5">
                 <button type="button" onclick="document.getElementById('modal-info-customer').classList.add('hidden')"
+                    class="px-4 py-2 bg-surface-container text-on-surface-variant rounded-lg text-sm font-semibold hover:bg-surface-high transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Bukti Pembayaran -->
+    <div id="modal-bukti" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-xl border border-outline-variant shadow-2xl w-full max-w-md mx-4 p-6 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-base font-bold text-on-surface">Bukti Pembayaran <span id="bukti-invoice" class="font-mono text-sm font-semibold text-primary"></span></h3>
+                <button type="button" id="btn-close-bukti" class="text-on-surface-variant hover:text-on-surface text-2xl leading-none">&times;</button>
+            </div>
+            <div id="bukti-list" class="space-y-4 overflow-y-auto"></div>
+            <div class="flex justify-end mt-5">
+                <button type="button" onclick="document.getElementById('modal-bukti').classList.add('hidden')"
                     class="px-4 py-2 bg-surface-container text-on-surface-variant rounded-lg text-sm font-semibold hover:bg-surface-high transition">
                     Tutup
                 </button>

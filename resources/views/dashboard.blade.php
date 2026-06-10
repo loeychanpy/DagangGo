@@ -130,6 +130,65 @@
             </div>
             @endif
 
+            @if(config('features.kasbon'))
+            <!-- Pengingat Kasbon -->
+            <div class="bg-white rounded-xl border border-outline-variant shadow-sm overflow-hidden mb-8">
+                <div class="bg-red-50 border-b border-red-200 px-6 py-4">
+                    <h3 class="text-base font-bold text-red-700 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Pengingat Kasbon
+                    </h3>
+                </div>
+                @if($kasbonReminders->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-surface-low border-b border-outline-variant">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Pelanggan</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Invoice</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Tgl Transaksi</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Jatuh Tempo</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Sisa Tagihan</th>
+                                <th class="px-6 py-3 text-center text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant">
+                            @foreach($kasbonReminders as $t)
+                            @php
+                                $due = $t->due_date;
+                                $overdue  = $due && $due->isPast() && !$due->isToday();
+                                $dueSoon  = $due && !$overdue && $due->lessThanOrEqualTo(today()->addDays(3));
+                            @endphp
+                            <tr class="hover:bg-surface-low transition {{ $overdue ? 'bg-red-50' : ($dueSoon ? 'bg-amber-50' : '') }}">
+                                <td class="px-6 py-4 text-sm font-semibold text-on-surface">{{ $t->customer->name ?? 'Umum' }}</td>
+                                <td class="px-6 py-4 text-xs font-mono text-primary">{{ $t->invoice_number }}</td>
+                                <td class="px-6 py-4 text-sm text-on-surface-variant">{{ $t->created_at->format('d/m/Y') }}</td>
+                                <td class="px-6 py-4 text-sm {{ $overdue ? 'text-red-600 font-semibold' : 'text-on-surface-variant' }}">
+                                    {{ $due?->format('d/m/Y') ?? '—' }}
+                                </td>
+                                <td class="px-6 py-4 text-right font-mono text-sm font-bold text-red-600">Rp {{ number_format($t->remaining_bill, 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 text-center">
+                                    @if($overdue)
+                                    <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-700">Jatuh Tempo</span>
+                                    @elseif($dueSoon)
+                                    <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-700">Segera</span>
+                                    @else
+                                    <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-surface-container text-on-surface-variant">{{ strtoupper($t->status) }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="p-10 text-center">
+                    <p class="text-base text-on-surface-variant font-medium">Tidak ada kasbon aktif. Semua piutang lunas 🎉</p>
+                </div>
+                @endif
+            </div>
+            @endif
+
             <!-- Grafik Penjualan -->
             <div class="bg-white rounded-xl border border-outline-variant shadow-sm p-6">
                 <h3 class="text-base font-bold text-on-surface mb-0.5">Grafik Penjualan</h3>

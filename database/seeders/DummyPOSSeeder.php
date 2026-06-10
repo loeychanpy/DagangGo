@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use App\Models\TransactionPayment;
@@ -30,26 +31,26 @@ class DummyPOSSeeder extends Seeder
 
         // 2. BUAT PRODUK CONTOH
         $product1 = Product::firstOrCreate([
-            'sku' => 'SMN-001',
+            'sku' => 'PRD0001',
         ], [
             'category_id' => $semen->id,
             'unit_id' => $sak->id,
             'name' => 'Semen Tiga Roda 40kg',
             'purchase_price' => 55000,
             'selling_price' => 62000,
-            'stock' => 50,
+            'stock' => 0, // dihitung dari ledger di akhir seeder
             'min_stock' => 5,
         ]);
 
         $product2 = Product::firstOrCreate([
-            'sku' => 'CAT-001',
+            'sku' => 'PRD0002',
         ], [
             'category_id' => $cat->id,
             'unit_id' => $kg->id,
             'name' => 'Cat Avian Putih 1kg',
             'purchase_price' => 40000,
             'selling_price' => 48000,
-            'stock' => 20,
+            'stock' => 0, // dihitung dari ledger di akhir seeder
             'min_stock' => 5,
         ]);
 
@@ -70,6 +71,16 @@ class DummyPOSSeeder extends Seeder
             'role' => 'owner',
         ]);
 
+        // STOK AWAL (ledger) — sumber kebenaran stok
+        StockMovement::firstOrCreate(
+            ['product_id' => $product1->id, 'reference_type' => 'Stok Awal'],
+            ['user_id' => $owner->id, 'type' => 'in', 'quantity' => 50, 'reference_id' => $product1->id, 'description' => 'Stok awal produk ' . $product1->name]
+        );
+        StockMovement::firstOrCreate(
+            ['product_id' => $product2->id, 'reference_type' => 'Stok Awal'],
+            ['user_id' => $owner->id, 'type' => 'in', 'quantity' => 20, 'reference_id' => $product2->id, 'description' => 'Stok awal produk ' . $product2->name]
+        );
+
         $today = Carbon::today();
 
         // TRANSAKSI LUNAS DENGAN DELIVERY DAN PEMBAYARAN
@@ -83,7 +94,6 @@ class DummyPOSSeeder extends Seeder
             'change_amount' => 26000,
             'subtotal' => 124000,
             'discount' => 0,
-            'tax' => 0,
             'payment_method' => 'cash',
             'status' => 'paid',
             'remaining_bill' => 0,
@@ -117,7 +127,10 @@ class DummyPOSSeeder extends Seeder
             'status' => 'delivered',
         ]);
 
-        $product1->decrement('stock', 2);
+        StockMovement::firstOrCreate(
+            ['product_id' => $product1->id, 'reference_type' => 'Transaction', 'reference_id' => $trx1->id],
+            ['user_id' => $owner->id, 'type' => 'out', 'quantity' => 2, 'description' => 'Penjualan nota ' . $trx1->invoice_number]
+        );
 
         // TRANSAKSI TEMPO / PIUTANG DENGAN DELIVERY
         $trx2 = Transaction::firstOrCreate([
@@ -130,7 +143,6 @@ class DummyPOSSeeder extends Seeder
             'change_amount' => 0,
             'subtotal' => 816000,
             'discount' => 0,
-            'tax' => 0,
             'payment_method' => 'tempo',
             'status' => 'unpaid',
             'remaining_bill' => 816000,
@@ -154,6 +166,12 @@ class DummyPOSSeeder extends Seeder
             'status' => 'pending',
         ]);
 
-        $product2->decrement('stock', 17);
+        StockMovement::firstOrCreate(
+            ['product_id' => $product2->id, 'reference_type' => 'Transaction', 'reference_id' => $trx2->id],
+            ['user_id' => $owner->id, 'type' => 'out', 'quantity' => 17, 'description' => 'Penjualan nota ' . $trx2->invoice_number]
+        );
+
+        // Hitung products.stock dari ledger (sumber kebenaran tunggal).
+        app(\App\Services\StockService::class)->reconcile();
     }
 }

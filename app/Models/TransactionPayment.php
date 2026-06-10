@@ -16,7 +16,12 @@ class TransactionPayment extends Model
         'amount',
         'payment_method',
         'reference_number',
-        'notes'
+        'proof_photo',
+        'notes',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
     ];
 
     public function transaction(): BelongsTo

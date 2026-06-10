@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-2xl font-bold">
-            Products > Edit Product
+            Produk &rsaquo; Edit Produk
         </h2>
     </x-slot>
     <div class="p-6">
@@ -19,17 +19,17 @@
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-6">
-                    <!-- Product Name -->
+                    <!-- Nama Produk -->
                     <div>
-                        <label class="block mb-2 font-medium">Product Name</label>
+                        <label class="block mb-2 font-medium">Nama Produk</label>
                         <input type="text" name="name" class="w-full rounded-lg border-gray-300" value="{{ old('name', $product->name) }}" required>
                     </div>
-                    <!-- Category -->
+                    <!-- Kategori -->
                     <div>
-                        <label class="block mb-2 font-medium">Category</label>
+                        <label class="block mb-2 font-medium">Kategori</label>
                         <div class="flex gap-2">
                             <select name="category_id" id="category_id" class="flex-1 rounded-lg border-gray-300" required>
-                                <option value="">Select Category</option>
+                                <option value="">Pilih Kategori</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}" {{ $product->category_id == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
@@ -43,12 +43,12 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Unit -->
+                    <!-- Satuan -->
                     <div>
-                        <label class="block mb-2 font-medium">Unit</label>
+                        <label class="block mb-2 font-medium">Satuan</label>
                         <div class="flex gap-2">
                             <select name="unit_id" id="unit_id" class="flex-1 rounded-lg border-gray-300" required>
-                                <option value="">Select Unit</option>
+                                <option value="">Pilih Satuan</option>
                                 @foreach($units as $unit)
                                     <option value="{{ $unit->id }}" {{ $product->unit_id == $unit->id ? 'selected' : '' }}>
                                         {{ $unit->name }}
@@ -62,30 +62,30 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Purchase Price -->
+                    <!-- Harga Beli -->
                     <div>
-                        <label class="block mb-2 font-medium">Purchase Price</label>
+                        <label class="block mb-2 font-medium">Harga Beli</label>
                         <input type="number" name="purchase_price" class="w-full rounded-lg border-gray-300" value="{{ old('purchase_price', $product->purchase_price) }}" required>
                     </div>
-                    <!-- Selling Price -->
+                    <!-- Harga Jual -->
                     <div>
-                        <label class="block mb-2 font-medium">Selling Price</label>
+                        <label class="block mb-2 font-medium">Harga Jual</label>
                         <input type="number" name="selling_price" class="w-full rounded-lg border-gray-300" value="{{ old('selling_price', $product->selling_price) }}" required>
                     </div>
-                    <!-- Stock -->
+                    <!-- Stok -->
                     <div>
-                        <label class="block mb-2 font-medium">Stock</label>
+                        <label class="block mb-2 font-medium">Stok</label>
                         <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" class="w-full rounded-lg border-gray-300" required>
                     </div>
-                    <!-- Minimum Stock -->
+                    <!-- Stok Minimum -->
                     <div>
-                        <label class="block mb-2 font-medium">Minimum Stock</label>
+                        <label class="block mb-2 font-medium">Stok Minimum</label>
                         <input type="number" name="min_stock" value="{{ old('min_stock', $product->min_stock) }}" class="w-full rounded-lg border-gray-300" required>
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-8">
-                    <a href="{{ route('inventory.index') }}" class="px-5 py-2 rounded-lg bg-gray-200">Cancel</a>
-                    <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 text-white">Update Product</button>
+                    <a href="{{ route('inventory.index') }}" class="px-5 py-2 rounded-lg bg-gray-200">Batal</a>
+                    <button type="submit" class="px-5 py-2 rounded-lg bg-blue-600 text-white">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -201,7 +201,6 @@
             }
         }
 
-        // Tutup modal saat klik backdrop
         document.getElementById('modal-category').addEventListener('click', function (e) {
             if (e.target === this) closeModal('category');
         });
