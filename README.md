@@ -83,7 +83,7 @@ php artisan storage:link
 
 # 5. Database setup (configure .env DB credentials first, then run)
 php artisan migrate
-php artisan db:seed --class=DummyPOSSeeder
+php artisan db:seed --class=UserSeeder
 
 # 6. Build frontend assets
 npm run build
