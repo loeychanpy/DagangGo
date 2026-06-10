@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
     // Customer routes (staff & owner)
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
 
     // Transaction / POS routes
     Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction.index');

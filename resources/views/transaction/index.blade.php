@@ -255,3 +255,17 @@
         </div>
     </div>
 </div>
+
+<div id="error-popup" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 shadow-2xl text-center w-96 border border-outline-variant">
+        <div class="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center text-3xl text-red-600">✕</div>
+        <h2 class="text-xl font-bold text-on-surface mt-4">Gagal</h2>
+        <p id="error-popup-message" class="text-on-surface-variant mt-2 text-sm">Checkout gagal</p>
+        <div class="mt-6">
+            <button onclick="closeErrorPopup()"
+                class="bg-primary text-white px-6 py-2.5 rounded-xl hover:bg-primary-dark font-semibold text-sm w-full">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>

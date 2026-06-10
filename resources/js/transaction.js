@@ -340,15 +340,28 @@ window.checkout = function() {
     formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
     fetch(window.ROUTE_CHECKOUT, { method: 'POST', body: formData })
-        .then(response => response.json())
-        .then(data => {
-            if (data.transaction_id) {
+        .then(async response => ({ ok: response.ok, data: await response.json() }))
+        .then(({ ok, data }) => {
+            if (ok && data.transaction_id) {
                 showSuccessPopup(data.message, data.transaction_id);
             } else {
-                showSuccessPopup(data.message || 'Terjadi kesalahan saat checkout.', null);
+                showErrorPopup(data.message || 'Terjadi kesalahan saat checkout.');
             }
         })
-        .catch(() => showSuccessPopup('Terjadi kesalahan koneksi. Coba lagi.', null));
+        .catch(() => showErrorPopup('Terjadi kesalahan koneksi. Coba lagi.'));
+};
+
+window.showErrorPopup = function(message) {
+    document.querySelector('#error-popup-message').innerText = message;
+    const popup = document.querySelector('#error-popup');
+    popup.classList.remove('hidden');
+    popup.classList.add('flex');
+};
+
+window.closeErrorPopup = function() {
+    const popup = document.querySelector('#error-popup');
+    popup.classList.add('hidden');
+    popup.classList.remove('flex');
 };
 
 window.showSuccessPopup = function(message, transactionId) {

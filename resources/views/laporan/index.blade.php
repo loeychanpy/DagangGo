@@ -314,7 +314,17 @@
                     <p class="text-on-surface-variant">Nama: <span id="ci-name" class="font-semibold text-on-surface"></span></p>
                     <p class="text-on-surface-variant">Telepon: <span id="ci-phone" class="font-semibold text-on-surface"></span></p>
                     <p class="text-on-surface-variant">Alamat: <span id="ci-address" class="font-semibold text-on-surface"></span></p>
-                    <p class="text-on-surface-variant">Limit Kredit: <span id="ci-credit" class="font-semibold text-on-surface font-mono"></span></p>
+                    <div class="flex items-center gap-2 pt-1">
+                        <label for="ci-credit-input" class="text-on-surface-variant whitespace-nowrap">Limit Kredit:</label>
+                        <input id="ci-credit-input" type="number" min="0" step="1000"
+                            class="flex-1 min-w-0 rounded-lg border-outline-variant focus:border-primary focus:ring-primary font-mono text-sm py-1"
+                            placeholder="0 = tanpa limit">
+                        <button type="button" id="btn-save-credit"
+                            class="px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-dark transition disabled:opacity-50">
+                            Simpan
+                        </button>
+                    </div>
+                    <p id="ci-credit-status" class="text-xs hidden"></p>
                 </div>
                 <div class="grid grid-cols-3 gap-3 text-center">
                     <div class="bg-primary/10 rounded-lg p-3">

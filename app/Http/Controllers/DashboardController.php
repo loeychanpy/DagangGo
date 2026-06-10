@@ -18,6 +18,14 @@ class DashboardController extends Controller
         // Total kasbon selalu kumulatif (tidak terfilter tanggal)
         $totalReceivables = Transaction::where('status', '!=', 'paid')->sum('remaining_bill');
 
+        // Pengingat kasbon: piutang aktif, jatuh tempo paling mendesak di atas
+        $kasbonReminders = Transaction::with('customer')
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->where('remaining_bill', '>', 0)
+            ->orderByRaw('due_date IS NULL, due_date ASC')
+            ->orderBy('created_at')
+            ->get();
+
         // Hitung rentang tanggal berdasarkan periode yang dipilih
         $period = $request->get('period', 'today');
         [$start, $end, $periodLabel] = $this->resolvePeriod(
@@ -38,6 +46,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'lowStockProducts',
             'totalReceivables',
+            'kasbonReminders',
             'periodSales',
             'periodTransactions',
             'periodLabel',

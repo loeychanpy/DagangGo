@@ -144,6 +144,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnCloseInfo = document.getElementById('btn-close-info-customer');
 
     if (modalInfo) {
+        let currentCustomer = null; // { url, name, phone, address }
+        const creditInput  = document.getElementById('ci-credit-input');
+        const creditStatus = document.getElementById('ci-credit-status');
+        const btnSaveCredit = document.getElementById('btn-save-credit');
+
         document.querySelectorAll('.btn-info-customer').forEach(btn => {
             btn.addEventListener('click', async function () {
                 const url  = this.dataset.url;
@@ -151,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Reset state
                 document.getElementById('customer-info-loading').classList.remove('hidden');
                 document.getElementById('customer-info-content').classList.add('hidden');
+                creditStatus.classList.add('hidden');
                 modalInfo.classList.remove('hidden');
 
                 try {
@@ -163,12 +169,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     const c = data.customer;
                     const s = data.stats;
 
+                    currentCustomer = { url, name: c.name, phone: c.phone, address: c.address };
+
                     document.getElementById('ci-name').textContent    = c.name;
                     document.getElementById('ci-phone').textContent   = c.phone || '-';
                     document.getElementById('ci-address').textContent = c.address || '-';
-                    document.getElementById('ci-credit').textContent  = c.credit_limit > 0
-                        ? 'Rp ' + formatRp(c.credit_limit)
-                        : 'Tidak ada limit';
+                    creditInput.value = Math.round(parseFloat(c.credit_limit) || 0);
 
                     document.getElementById('ci-total-trx').textContent   = s.total_transactions;
                     document.getElementById('ci-total-spent').textContent = 'Rp ' + formatRp(s.total_spent);
@@ -180,6 +186,41 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('customer-info-loading').textContent = 'Gagal memuat: ' + err.message;
                 }
             });
+        });
+
+        btnSaveCredit.addEventListener('click', async function () {
+            if (!currentCustomer) return;
+
+            btnSaveCredit.disabled = true;
+            btnSaveCredit.textContent = '...';
+            creditStatus.classList.add('hidden');
+
+            try {
+                const res = await fetch(currentCustomer.url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        name:         currentCustomer.name,
+                        phone:        currentCustomer.phone,
+                        address:      currentCustomer.address,
+                        credit_limit: parseFloat(creditInput.value) || 0,
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Gagal menyimpan limit.');
+
+                creditStatus.textContent = 'Limit kredit tersimpan.';
+                creditStatus.className = 'text-xs text-secondary';
+            } catch (err) {
+                creditStatus.textContent = 'Gagal: ' + err.message;
+                creditStatus.className = 'text-xs text-red-600';
+            } finally {
+                btnSaveCredit.disabled = false;
+                btnSaveCredit.textContent = 'Simpan';
+            }
         });
 
         btnCloseInfo.addEventListener('click', () => modalInfo.classList.add('hidden'));

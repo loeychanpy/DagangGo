@@ -26,6 +26,25 @@ class CustomerController extends Controller
         return response()->json(['customer' => $customer], 201);
     }
 
+    public function update(Request $request, Customer $customer)
+    {
+        $request->validate([
+            'name'         => 'required|string|max:100',
+            'phone'        => 'nullable|string|max:20',
+            'address'      => 'nullable|string|max:300',
+            'credit_limit' => 'nullable|numeric|min:0',
+        ]);
+
+        $customer->update([
+            'name'         => $request->name,
+            'phone'        => $request->phone,
+            'address'      => $request->address,
+            'credit_limit' => $request->credit_limit ?? 0,
+        ]);
+
+        return response()->json(['customer' => $customer]);
+    }
+
     public function show(Customer $customer)
     {
         $totalTransactions = $customer->transactions()->count();
