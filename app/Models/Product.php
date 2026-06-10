@@ -18,6 +18,12 @@ class Product extends Model
         'stock',
         'min_stock'
     ];
+
+    protected $casts = [
+        'purchase_price' => 'decimal:2',
+        'selling_price'  => 'decimal:2',
+    ];
+
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);

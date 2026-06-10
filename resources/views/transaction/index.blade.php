@@ -66,7 +66,7 @@
                 <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Pelanggan</label>
                 <div class="flex gap-2">
                     <select id="customer-select" class="flex-1 rounded-lg border-outline-variant focus:border-primary focus:ring-primary text-sm">
-                        <option value="">-- Umum (Tanpa Pelanggan) --</option>
+                        <option value="">Umum</option>
                         @foreach($customers as $customer)
                             <option value="{{ $customer->id }}">{{ $customer->name }}{{ $customer->phone ? ' · '.$customer->phone : '' }}</option>
                         @endforeach

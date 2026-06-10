@@ -5,13 +5,15 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\StockMovement;
 use App\Models\Unit;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
+    public function __construct(private StockService $stockService) {}
+
     public function index(Request $request)
     {
         $query = Product::with([
@@ -101,20 +103,19 @@ class ProductController extends Controller
             'unit_id' => $request->unit_id,
             'purchase_price' => $request->purchase_price,
             'selling_price' => $request->selling_price,
-            'stock' => $request->stock,
+            'stock' => 0, // diisi lewat ledger di bawah
             'min_stock' => $request->min_stock,
         ]);
 
-        if ($product->stock > 0) {
-            StockMovement::create([
-                'product_id'     => $product->id,
-                'user_id'        => Auth::id(),
-                'type'           => 'in',
-                'quantity'       => $product->stock,
-                'reference_type' => 'Stok Awal',
-                'reference_id'   => $product->id,
-                'description'    => "Stok awal produk {$product->name}",
-            ]);
+        if ((int) $request->stock > 0) {
+            $this->stockService->stockIn(
+                $product,
+                (int) $request->stock,
+                'Stok Awal',
+                $product->id,
+                "Stok awal produk {$product->name}",
+                Auth::id()
+            );
         }
 
         AuditLog::create([
@@ -164,31 +165,27 @@ class ProductController extends Controller
             'min_stock' => 'required|integer|min:0',
         ]);
 
-        $oldStock = $product->stock;
+        $oldStock = (int) $product->stock;
+        $newStock = (int) $request->stock;
 
+        // Jangan set `stock` langsung — biarkan ledger yang menentukannya.
         $product->update([
             'name' => $request->name,
             'category_id' => $request->category_id,
             'unit_id' => $request->unit_id,
             'purchase_price' => $request->purchase_price,
             'selling_price' => $request->selling_price,
-            'stock' => $request->stock,
             'min_stock' => $request->min_stock,
         ]);
 
-        $newStock = (int) $request->stock;
-
-        if ($newStock !== $oldStock) {
-            StockMovement::create([
-                'product_id'     => $product->id,
-                'user_id'        => Auth::id(),
-                'type'           => $newStock > $oldStock ? 'in' : 'out',
-                'quantity'       => abs($newStock - $oldStock),
-                'reference_type' => 'Penyesuaian',
-                'reference_id'   => $product->id,
-                'description'    => "Penyesuaian stok {$product->name}: {$oldStock} → {$newStock}",
-            ]);
-        }
+        $this->stockService->setStock(
+            $product,
+            $newStock,
+            'Penyesuaian',
+            $product->id,
+            "Penyesuaian stok {$product->name}: {$oldStock} → {$newStock}",
+            Auth::id()
+        );
 
         AuditLog::create([
             'user_id'     => Auth::id(),

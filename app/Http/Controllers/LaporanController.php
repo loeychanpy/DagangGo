@@ -83,7 +83,7 @@ class LaporanController extends Controller
                 'amount'           => $request->amount,
                 'payment_method'   => $request->payment_method,
                 'reference_number' => $request->reference_number,
-                'notes'            => $proofPath,
+                'proof_photo'      => $proofPath,
             ]);
 
             $newRemaining = max(0, $transaction->remaining_bill - $request->amount);

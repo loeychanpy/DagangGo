@@ -21,7 +21,6 @@ class Transaction extends Model
         'change_amount',
         'subtotal',
         'discount',
-        'tax',
         'payment_method',
         'status',
         'remaining_bill',
@@ -29,7 +28,13 @@ class Transaction extends Model
     ];
 
     protected $casts = [
-        'due_date' => 'date',
+        'due_date'       => 'date',
+        'total_price'    => 'decimal:2',
+        'subtotal'       => 'decimal:2',
+        'discount'       => 'decimal:2',
+        'pay_amount'     => 'decimal:2',
+        'change_amount'  => 'decimal:2',
+        'remaining_bill' => 'decimal:2',
     ];
 
     public function user(): BelongsTo

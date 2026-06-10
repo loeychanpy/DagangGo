@@ -128,14 +128,14 @@
                                                 Unduh PDF
                                             </a>
                                             @php
-                                                $proofs = $transaction->payments->whereNotNull('notes');
+                                                $proofs = $transaction->payments->whereNotNull('proof_photo');
                                             @endphp
                                             @if($proofs->isNotEmpty())
                                             <button type="button"
                                                 class="btn-lihat-bukti w-full text-left px-4 py-2.5 text-sm text-on-surface hover:bg-surface-low flex items-center gap-2.5 transition"
                                                 data-invoice="{{ $transaction->invoice_number }}"
                                                 data-proofs="{{ json_encode($proofs->map(fn($p) => [
-                                                    'url'       => asset('storage/' . $p->notes),
+                                                    'url'       => asset('storage/' . $p->proof_photo),
                                                     'method'    => strtoupper($p->payment_method),
                                                     'amount'    => $p->amount,
                                                     'reference' => $p->reference_number,

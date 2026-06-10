@@ -18,6 +18,10 @@ class Customer extends Model
         'credit_limit',
     ];
 
+    protected $casts = [
+        'credit_limit' => 'decimal:2',
+    ];
+
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
