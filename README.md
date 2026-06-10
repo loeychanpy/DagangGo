@@ -1,54 +1,34 @@
-# DagangGo — Point of Sale System
+# dagangGo — Point of Sale System
 
-A web-based Point of Sale (POS) application built with Laravel 12, designed for small retail businesses. Supports cash and credit transactions, inventory management, delivery notes, financial reporting, and a full audit trail.
+**dagangGo** (*Digitalization of Assets, Goods, and General Network for Growth Operations*) is a modern, web-based Point of Sale (POS) application built with Laravel 12. Designed specifically to support the digitalization of Micro, Small, and Medium Enterprises (UMKM).
 
-## Tech Stack
+Employing a **Retail-Agnostic** approach, dagangGo is highly adaptable to various types of retail commodities. It features a scalable architecture with a **Feature Toggle** system and implements a **Cash-Based Profit Calculation** method to ensure highly accurate financial reporting.
 
-| Layer | Technology |
-|---|---|
-| Backend | PHP 8.2 · Laravel 12 |
-| Frontend | Blade · Tailwind CSS v3 · Alpine.js |
-| Build tool | Vite |
-| Database | MySQL |
-| PDF generation | barryvdh/laravel-dompdf |
-| Fonts | Hanken Grotesk · JetBrains Mono |
+## 👥 Development Team
 
-## Features
+Developed by Informatics undergraduate students at Universitas Kristen Krida Wacana (UKRIDA):
 
-### POS / Transaksi
+- **Janisha Jaya** — Project Manager & Backend Engineer
+- **Josh Valentino** — Frontend & Backend Developer
+- **Richard Devin Sutisna** — Creative Director
+- **Alejandro Julian Mac Athur Simanjuntak** — Field Researcher
+
+## 🚀 Core Features
+
+### POS / Transaksi (Automated Cashier)
 - Product search and category filter
-- Add/remove items from cart with quantity control
-- Discount input
-- Payment methods: **Cash**, **Transfer**, **QRIS**, **Tempo (kasbon)**
-- Tempo transactions track due date and remaining bill per customer
+- Dynamic cart with quantity control and discount input
+- Payment methods: **Cash**, **Transfer**, **QRIS**, and **Tempo (Kasbon)**
+- Tracks due dates and remaining bills per customer for Tempo transactions
 - Upload payment proof photo for transfer/QRIS
 - Print invoice PDF immediately after checkout
 
-### Inventory
+### Inventory (Real-Time Stock Movement)
 - Full product CRUD (name, SKU, category, unit, purchase price, selling price, minimum stock)
-- Stock badge: green (normal) · amber (low) · red (out of stock)
+- Automated stock reduction and ledger recording upon successful checkout
+- Intuitive stock badges: green (normal) · yellow (low) · red (out of stock)
 - Low stock count badge in the navbar, visible on every page
 - Search by name and filter by category with auto-submit
-
-### Laporan (Financial Report)
-- Date range filter
-- KPI cards: Total Omzet, Total Uang Masuk, Total Piutang
-- Export full report as PDF or CSV
-- Per-transaction invoice PDF
-- Record partial or full payment for outstanding tempo bills
-- Payment proof upload (transfer/QRIS)
-
-### Surat Jalan (Delivery Note)
-- Create delivery data per transaction (shipping address, driver name, license plate)
-- Print delivery note in a clean printable view
-
-### Audit Log
-- Tracks key system actions: new transactions, product changes, user management, payment recording
-- Visible to owner role only
-
-### User Management
-- Owner can create staff accounts and assign roles (owner / staff)
-- Role-based access: staff can access POS and view laporan; owner has full access
 
 ### Dashboard
 - Daily, weekly, monthly, and custom date range filter
@@ -56,51 +36,69 @@ A web-based Point of Sale (POS) application built with Laravel 12, designed for 
 - Sales bar chart per day
 - Low stock product list
 
-## Roles
+### Laporan (Financial Report)
+- Date range filter with KPI cards: Total Omzet, Total Uang Masuk, Total Piutang
+- Cash-Based Profit Calculation separating paid revenue from unpaid debts
+- Export full report as PDF or CSV
+- Record partial or full payment for outstanding tempo bills
 
-| Feature | Staff | Owner |
-|---|:---:|:---:|
-| POS / Transaksi | ✅ | ✅ |
-| Inventory | ✅ | ✅ |
-| Laporan | ✅ | ✅ |
-| Audit Log | ❌ | ✅ |
-| User Management | ❌ | ✅ |
-| Profile Settings | ❌ | ✅ |
+### Surat Jalan & Audit Log
+- **Surat Jalan:** Create delivery data per transaction (shipping address, driver name, license plate) and print delivery notes
+- **Audit Log:** Tracks key system actions (new transactions, product changes, user management, and payment logging) — exclusively visible to the Owner
 
-## Requirements
+### User Management
+- Owner can create staff accounts and assign roles (owner / staff)
+- Role-based access: staff can access POS , Dashboard and Inventory; owner has full access
 
-- PHP >= 8.2
-- Composer
-- Node.js >= 18 & npm
-- MySQL
+## 🛠️ Tech Stack
 
-## Installation
+| Layer | Technology |
+|---|---|
+| Backend | PHP 8.2 · Laravel 12 |
+| Frontend | Blade Templating · Tailwind CSS v3 · Alpine.js |
+| Build tool | Vite |
+| Database | MySQL |
+| PDF generation | barryvdh/laravel-dompdf |
+| Fonts | Hanken Grotesk · JetBrains Mono |
+
+## ⚙️ Installation & Setup
+
+**Requirements:** PHP >= 8.2, Composer, Node.js >= 18 & npm, MySQL.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/loeychanpy/MaterialPOS.git
-cd MaterialPOS
+git clone https://github.com/loeychanpy/DagangGo.git
+cd DagangGo
 
-# 2. Install PHP dependencies
+# 2. Install dependencies
 composer install
-
-# 3. Install Node dependencies
 npm install
 
-# 4. Copy environment file
+# 3. Environment setup
 cp .env.example .env
-
-# 5. Generate application key
 php artisan key:generate
+
+# 4. Link storage directory (required for image uploads)
+php artisan storage:link
+
+# 5. Database setup (configure .env DB credentials first, then run)
+php artisan migrate
+php artisan db:seed --class=DummyPOSSeeder
+
+# 6. Build frontend assets
+npm run build
+
+# 7. Start the server
+php artisan serve
 ```
 
-## Configuration
+## 🔧 Configuration
 
-Edit `.env` with your database credentials:
+Edit `.env` with your database credentials and feature flags:
 
 ```env
 APP_NAME=DagangGo
-APP_URL=http://localhost/MaterialPOS/public
+APP_URL=http://localhost/DagangGo/public
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -116,32 +114,26 @@ FEATURE_KASBON=true
 FEATURE_DELIVERY=true
 ```
 
-> **FEATURE_KASBON** — enables the Tempo payment method and credit limit per customer.
-> **FEATURE_DELIVERY** — enables Surat Jalan creation and printing.
+## 🎛️ Feature Toggle
 
-## Database Setup
+| Flag | Default | Description |
+|---|:---:|---|
+| `FEATURE_KASBON` | `true` | Enables Tempo payment method and credit tracking. Set to `false` for strict Cash & Carry stores. |
+| `FEATURE_DELIVERY` | `true` | Enables Surat Jalan (Delivery Note) creation and printing. |
 
-```bash
-# Run migrations
-php artisan migrate
+## 🔒 User Roles
 
-# (Optional) Seed with dummy data
-php artisan db:seed --class=DummyPOSSeeder
-```
+| Feature | Staff (Kasir) | Owner |
+|---|:---:|:---:|
+| Dashboard | ✅ | ✅ |
+| POS / Transaksi | ✅ | ✅ |
+| Inventory | ✅ | ✅ |
+| Laporan | ❌ | ✅ |
+| Audit Log | ❌ | ✅ |
+| User Management | ❌ | ✅ |
+| Profile Settings | ❌ | ✅ |
 
-## Build & Run
-
-```bash
-# Build frontend assets
-npm run build
-
-# Or use hot-reload during development
-npm run dev
-```
-
-Then open the app at `http://localhost/MaterialPOS/public`.
-
-## Database Schema
+## 🗄️ Database Schema
 
 | Table | Description |
 |---|---|
@@ -157,7 +149,7 @@ Then open the app at `http://localhost/MaterialPOS/public`.
 | `deliveries` | Delivery data linked to transactions |
 | `audit_logs` | Action audit trail per user |
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 app/
@@ -190,6 +182,6 @@ routes/
 └── web.php
 ```
 
-## License
+## 📄 License
 
 MIT
